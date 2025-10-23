@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "skybridge": "0.0.0-dev.b095cd5",
+    "skybridge": "0.0.0-dev. 2d1d393",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "glob": "^11.0.3",
