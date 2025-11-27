@@ -1,4 +1,5 @@
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import yourte from "@/yourte.jpeg";
 import "@/index.css";
 
 import { mountWidget, useToolOutput } from "skybridge/web";
@@ -149,6 +150,7 @@ function Pokemon() {
 
   return (
     <div className={`p-4 rounded-xl flex flex-row gap-4 ${typesToClassnames[pokemon.types[0].id].background.widget}`}>
+      <img src={yourte} alt="yourte" className="object-contain drop-shadow-2xl max-w-32 max-h-32" />
       <img src={pokemon.imageUrl} alt={pokemon.name} className="object-contain drop-shadow-2xl" />
       <div className="flex flex-col gap-2">
         <Tile color={pokemon.types[0].id}>
