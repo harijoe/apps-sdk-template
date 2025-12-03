@@ -1,8 +1,9 @@
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
-import yourte from "@/yourte.jpeg";
 import "@/index.css";
 
-import { mountWidget, useToolOutput } from "skybridge/web";
+import { useState } from "react";
+import { mountWidget, useToolOutput, useWidgetState } from "skybridge/web";
+import { Nested } from "./nested";
 
 type Pokemon = {
   name: string;
@@ -138,39 +139,88 @@ const typesToClassnames: Record<
 };
 
 function Pokemon() {
+  const [test, setTest] = useState<"initial" | "another" | "nested">("initial");
   const pokemon = useToolOutput() as Pokemon | null;
+  const [widgetState, setWidgetState] = useWidgetState<{ count: number }>({ count: 0 });
 
   if (!pokemon) {
     return (
-      <div className="flex justify-center items-center h-50">
+      <div className="flex justify-center items-center h-48">
         <Spinner />
       </div>
     );
   }
 
+  console.log(window.openai.widgetState);
+
   return (
-    <div className={`p-4 rounded-xl flex flex-row gap-4 ${typesToClassnames[pokemon.types[0].id].background.widget}`}>
-      <img src={yourte} alt="yourte" className="object-contain drop-shadow-2xl max-w-32 max-h-32" />
-      <img src={pokemon.imageUrl} alt={pokemon.name} className="object-contain drop-shadow-2xl" />
-      <div className="flex flex-col gap-2">
-        <Tile color={pokemon.types[0].id}>
-          <div className="flex flex-row justify-between items-center">
-            <div>
-              <h2 className="text-lg font-bold uppercase">{pokemon.name}</h2>
-              <h2 className={`text-md font-bold ${typesToClassnames[pokemon.types[0].id].text}`}>
-                {String(pokemon.order).padStart(3, "0")}
-              </h2>
-            </div>
-            <div className="flex flex-row gap-2">
-              {pokemon.types.map(({ id, name }) => (
-                <img key={id} src={typesSvgs[id as keyof typeof typesSvgs]} alt={name} className="w-6 h-6" />
-              ))}
-            </div>
+    <>
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Widget State:</h3>
+        <pre className="text-xs bg-white p-3 rounded border overflow-auto max-h-48">
+          {JSON.stringify({ ...widgetState, __widget_context: undefined }, null, 2)}
+        </pre>
+        {(window.openai.widgetState as any)?.__widget_context && (
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Widget Context:</h3>
+            <pre className="text-xs bg-white p-3 rounded border overflow-auto max-h-48 whitespace-pre-wrap">
+              {(window.openai.widgetState as any).__widget_context}
+            </pre>
           </div>
-          <p className="text-gray-500">{pokemon.description}</p>
-        </Tile>
+        )}
       </div>
-    </div>
+      <div className={`p-4 rounded-xl flex flex-row gap-4 ${typesToClassnames[pokemon.types[0].id].background.widget}`}>
+        <button
+          className="bg-blue-500 text-white p-2 rounded-md cursor-pointer"
+          onClick={() => setWidgetState({ count: (widgetState?.count ?? 0) + 1 })}
+        >
+          increment
+        </button>
+        <div className="flex flex-col gap-2">
+          <button className="bg-blue-500 text-white p-2 rounded-md cursor-pointer" onClick={() => setTest("initial")}>
+            initial
+          </button>
+          <button className="bg-blue-500 text-white p-2 rounded-md cursor-pointer" onClick={() => setTest("another")}>
+            another
+          </button>
+          <button className="bg-blue-500 text-white p-2 rounded-md cursor-pointer" onClick={() => setTest("nested")}>
+            nested
+          </button>
+          {test === "initial" && <div llm="initial">initial</div>}
+          {test === "another" && <div llm="another">another</div>}
+          {test === "nested" && (
+            <div llm="nested">
+              <Nested />
+            </div>
+          )}
+          <button
+            className="bg-blue-500 text-white p-2 rounded-md cursor-pointer"
+            onClick={() => window.openai.sendFollowUpMessage({ prompt: "Tell me the value of the widget context" })}
+          >
+            ANSWER ME
+          </button>
+        </div>
+        <img src={pokemon.imageUrl} alt={pokemon.name} className="object-contain drop-shadow-2xl" />
+        <div className="flex flex-col gap-2">
+          <Tile color={pokemon.types[0].id}>
+            <div className="flex flex-row justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold uppercase">{pokemon.name}</h2>
+                <h2 className={`text-md font-bold ${typesToClassnames[pokemon.types[0].id].text}`}>
+                  {String(pokemon.order).padStart(3, "0")}
+                </h2>
+              </div>
+              <div className="flex flex-row gap-2">
+                {pokemon.types.map(({ id, name }) => (
+                  <img key={id} src={typesSvgs[id as keyof typeof typesSvgs]} alt={name} className="w-6 h-6" />
+                ))}
+              </div>
+            </div>
+            <p className="text-gray-500">{pokemon.description}</p>
+          </Tile>
+        </div>
+      </div>
+    </>
   );
 }
 
