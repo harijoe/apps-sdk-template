@@ -22,6 +22,7 @@ server.widget(
     inputSchema: {
       name: z.string().describe("Pokemon name, always in english"),
     },
+    annotations: { readOnlyHint: true },
   },
   async ({ name }): Promise<CallToolResult> => {
     try {
@@ -30,7 +31,7 @@ server.widget(
       return {
         /**
          * Arbitrary JSON passed only to the component.
-         * Use it for data that should not influence the model’s reasoning, like the full set of locations that backs a dropdown.
+         * Use it for data that should not influence the model's reasoning, like the full set of locations that backs a dropdown.
          * _meta is never shown to the model.
          */
         _meta: { id },
@@ -56,6 +57,31 @@ server.widget(
         isError: true,
       };
     }
+  },
+);
+
+server.widget(
+  "piano",
+  {
+    description: "Interactive piano widget for playing and recording notes",
+  },
+  {
+    description:
+      "Use this tool to display an interactive piano keyboard. Users can play notes, record their performance, and ask the AI to guess what song they played.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  },
+  async (): Promise<CallToolResult> => {
+    return {
+      structuredContent: {},
+      content: [
+        {
+          type: "text",
+          text: "Interactive piano widget loaded. Play notes on the keyboard and click 'Guess' to have me identify the song!",
+        },
+      ],
+      isError: false,
+    };
   },
 );
 
