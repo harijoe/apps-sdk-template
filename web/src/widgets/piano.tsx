@@ -93,18 +93,6 @@ function PianoWidget() {
     return noteMap[midiNumber] || "?";
   };
 
-  const toDoReMi = (noteName: string): string => {
-    const noteMap: Record<string, string> = {
-      C: "Do",
-      D: "Re",
-      E: "Mi",
-      F: "Fa",
-      G: "Sol",
-      A: "La",
-      B: "Si",
-    };
-    return noteMap[noteName] || noteName;
-  };
   const playNote = useCallback(
     (midiNumber: number) => {
       if (instrument) {
@@ -171,18 +159,23 @@ function PianoWidget() {
 
     setIsThinking(true);
 
-    // Format notes with timings for the LLM
-    const notesString = recordedNotes
-      .map((note, index) => {
-        if (index === 0) {
-          return `${note.noteName}`;
-        }
+    // Calculate intervals from the first note (in semitones)
+    const firstNoteMidi = recordedNotes[0].midiNumber;
+    const intervals: number[] = [];
+    for (let i = 0; i < recordedNotes.length; i++) {
+      const interval = recordedNotes[i].midiNumber - firstNoteMidi;
+      intervals.push(interval);
+    }
 
-        return `${toDoReMi(note.noteName)}`;
+    // Format intervals as a string (e.g., "0, +2, -3, +7, -2")
+    const intervalsString = intervals
+      .map((interval) => {
+        const sign = interval >= 0 ? "+" : "";
+        return `${sign}${interval}`;
       })
       .join(", ");
 
-    const prompt = `I've played these notes on a piano: ${notesString}. Try your best to guess what song this is. It's most likely a '${locale}' song but not necessarily, it's most likely popular though. I want a short answer : just reply with the song name.`;
+    const prompt = `I've played a melody on a piano. The intervals from the first note (in semitones) are: ${intervalsString}. Give me the name of the song corresponding to this melody. I want a short answer : just reply with the song name.`;
 
     window.openai.sendFollowUpMessage({ prompt });
 
@@ -240,7 +233,7 @@ function PianoWidget() {
             disabled={recordedNotes.length === 0 || isThinking}
             className="cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-6 py-2 shadow-sm"
           >
-            {locale === "en" ? "Guess" : "Devinez"}
+            {locale === "en" ? "Guess" : "Devine"}
           </button>
           <button
             onClick={handleReset}
